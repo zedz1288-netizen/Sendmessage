@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anonymous Confessions</title>
+</head>
+<body>
+    <h1>Anonymous Confessions</h1>
+    
+    <textarea id="msg" placeholder="Write your secret here..." rows="4" style="width: 100%;"></textarea><br><br>
+    
+    <button onclick="submit()">Send Secret</button>
+    <hr>
+    <button onclick="getRandom()">View Random Secret</button>
+    <h2 id="display"></h2>
+
+    <script src="https://cdn.jsdelivr.net/npm/appwrite@17.0.0"></script>
+    
+    <script>
+        const { Client, Databases, ID } = Appwrite;
+        
+        const client = new Client()
+            .setEndpoint('https://cloud.appwrite.io/v1')
+            .setProject('6a2d1710001627d8835c'); 
+
+        const databases = new Databases(client);
+
+        async function submit() {
+            const text = document.getElementById('msg').value;
+            if (!text) return alert("Please type something!");
+            
+            try {
+                await databases.createDocument(
+                    '6a2d17420014203c61fc', 
+                    'messages', 
+                    ID.unique(), 
+                    { content: text }
+                );
+                alert("Secret sent!");
+                document.getElementById('msg').value = '';
+            } catch (error) {
+                alert("Error: " + error.message);
+            }
+        }
+
+        async function getRandom() {
+            try {
+                const response = await databases.listDocuments(
+                    '6a2d17420014203c61fc', 
+                    'messages'
+                );
+                
+                const docs = response.documents;
+                if(docs.length > 0) {
+                    const random = docs[Math.floor(Math.random() * docs.length)];
+                    document.getElementById('display').innerText = random.content;
+                } else {
+                    document.getElementById('display').innerText = "No secrets yet!";
+                }
+            } catch (error) {
+                alert("Error: " + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
+
